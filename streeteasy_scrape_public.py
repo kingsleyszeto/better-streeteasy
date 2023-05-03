@@ -18,11 +18,11 @@ def print_err():
                         'lineno': exc_traceback.tb_lineno,
                         'name': exc_traceback.tb_frame.f_code.co_name,
                         'type': exc_type.__name__,
-                        'message': exc_value.message,  # or see traceback._some_str()
+                        # 'message': exc_value.message,  # or see traceback._some_str()
                         }
     del (exc_type, exc_value, exc_traceback)
     for key, val in traceback_details.items():
-        print key, val
+        print(key, val)
 
 
 def main(**kwargs):
@@ -78,13 +78,13 @@ def main(**kwargs):
     for page in np.arange(1, max_pages):
         try:
             # display
-            print "**********************************************"
-            print "Page %d" % (page)
-            print "**********************************************"
+            print("**********************************************")
+            print("Page %d" % (page))
+            print("**********************************************")
 
             # load the url for this listing page
             url = "http://streeteasy.com/for-rent/nyc?page=%d" % (page)
-            r = urllib.urlopen(url)
+            r = urllib.request.urlopen(url)
 
             # parse with bs4
             soup = BeautifulSoup(r, "lxml")
@@ -93,7 +93,7 @@ def main(**kwargs):
             # check for error message. Exit if the page does not exists.
             err_msg = soup.find(class_="error-message")
             if err_msg:
-                print "Page does not exist.  Stopping."
+                print("Page does not exist.  Stopping.")
                 break
 
             # get all listings from this search page
@@ -101,7 +101,7 @@ def main(**kwargs):
 
             # run partial save if requested
             if partial_save > 0 and page % partial_save == 0:
-                print "*****Partial save*****"
+                print("*****Partial save*****")
                 if not os.path.isdir('partial_save'):
                     os.makedirs('partial_save')
                 try:
@@ -112,7 +112,7 @@ def main(**kwargs):
                     df.to_csv('partial_save/' + str(datetime.date.today()) + '.csv')
                 except:
                     #if save was unsuccessful. do not append
-                    print "Error saving df_temp.  Discarding recent data."
+                    print("Error saving df_temp.  Discarding recent data.")
                     print_err()
 
                 # reset df_temp
@@ -122,7 +122,7 @@ def main(**kwargs):
             for element in listings:
                 try:
                     # divider
-                    print "======================"
+                    print("======================")
 
                     #initialize dict
                     d = {}
@@ -132,11 +132,11 @@ def main(**kwargs):
                     # grab and print the listing number
                     match = re.search(r'data-id="(\d+)', str(element))
                     d['data_id'] = int(match.group(1))
-                    print "data_id: " + str(d['data_id'])
+                    print("data_id: " + str(d['data_id']))
 
                     # get the link for this listing
                     d['link'] = prefix + element.a["href"]
-                    print d['link']
+                    print(d['link'])
 
                     #save the date
                     d['scrape_date'] = str(datetime.date.today())
@@ -165,7 +165,7 @@ def main(**kwargs):
                         # now strip the price, convert to int
                         d['price'] = int(d['price'].replace("$", '').replace(',', '').strip())
                     if verbose:
-                        print "price = %d" % (d['price'])
+                        print("price = %d" % (d['price']))
 
                     # now get everything from the detail cells, assign to variable based on the
                     # text that is found.
@@ -175,33 +175,33 @@ def main(**kwargs):
                         if temp.find('bed') != -1:
                             d['beds'] = float(re.search(r'[\d.\d]+', temp).group())  # drop non-numeric and convert to float
                             if verbose:
-                                print "beds = %2.1f" % (d['beds'])
+                                print("beds = %2.1f" % (d['beds']))
                         elif temp.find('per ft') != -1:
                             d['per_sq_ft'] = int(temp.replace('$', '').replace(' per ft&sup2', ''))
                             if verbose:
-                                print "per_sq_ft = %d" % (d['per_sq_ft'])
+                                print("per_sq_ft = %d" % (d['per_sq_ft']))
                         elif temp.find('ft') != -1 and temp.find('per') == -1:
                             d['sq_ft'] = int(temp.replace(',', '').replace('ft&sup2', ''))
                             if verbose:
-                                print "sq_ft = %d" % (d['sq_ft'])
+                                print("sq_ft = %d" % (d['sq_ft']))
                         elif temp.find('room') != -1:
                             d['rooms'] = float(re.search(r'[\d.\d]+', temp).group())
                             if verbose:
-                                print "rooms = %2.1f" % (d['rooms'])
+                                print("rooms = %2.1f" % (d['rooms']))
                         elif temp.find('bath') != -1:
                             d['baths'] = float(re.search(r'[\d.\d]+', temp).group())
                             if verbose:
-                                print "baths = %2.1f" % (d['baths'])
+                                print("baths = %2.1f" % (d['baths']))
 
                     # get the unit type and neighboor hood from the nobreak cell.
                     nobreak = soup.find_all(class_="nobreak")
                     d['unit_type'] = nobreak[0].getText()
                     if verbose:
-                        print "unit_type = %s" % (d['unit_type'])
+                        print("unit_type = %s" % (d['unit_type']))
 
                     d['neighborhood'] = nobreak[1].getText().replace('in ', '')
                     if verbose:
-                        print "neighborhood = %s" % (d['neighborhood'])
+                        print("neighborhood = %s" % (d['neighborhood']))
 
                     # days on market
                     vitals = str(soup.find(class_="vitals top_spacer"))
@@ -210,7 +210,7 @@ def main(**kwargs):
                         d['days_on_streeteasy'] = int(days_on_streeteasy_temp.group(1))
 
                     if verbose:
-                        print "days_on_streeteasy = %d" % (d['days_on_streeteasy'])
+                        print("days_on_streeteasy = %d" % (d['days_on_streeteasy']))
 
                     # realtor company and agent
                     try:
@@ -218,9 +218,9 @@ def main(**kwargs):
                         if d['realtor']:
                             d['realtor'] = d['realtor'].getText()
                             if verbose:
-                                print "realtor = %s" % (d['realtor'])
+                                print("realtor = %s" % (d['realtor']))
                     except:
-                        print "***Realtor not found, skipping."
+                        print("***Realtor not found, skipping.")
 
                     # now check for amenities
                     amenities_str = str(soup.findAll(class_="amenities big_separator"))
@@ -250,16 +250,16 @@ def main(**kwargs):
                     df_temp = df_temp.append(d, ignore_index=True)
 
                 except:
-                    print "Error on page %d" % (page)
+                    print("Error on page %d" % (page))
                     print_err()
                     continue
         except:
-            print "Error on page %d" % (page)
+            print("Error on page %d" % (page))
             print_err()
             continue
 
     #save final df
-    print "DONE.  Saving..."
+    print("DONE.  Saving...")
     try:
         # write temporary dataframe to csv
         df_temp.to_csv('partial_save/df_temp.csv')
@@ -268,7 +268,7 @@ def main(**kwargs):
         df.to_csv(str(datetime.date.today()) + '.csv')
     except:
         # if save was unsuccessful. do not append
-        print "Error saving df."
+        print("Error saving df.")
         print_err()
 
     #exit
