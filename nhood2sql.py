@@ -4,7 +4,7 @@ import pandas as pd
 import sqlite3
 import numpy as np
 
-def main(db_name, csv_name, table_name):
+def main(db_name, csv_file, table_name):
     """
     Reads in the csv file storing the name of all neighborhoods and the associated borough and 
     adds that information to a table in the SQLite database.
@@ -51,4 +51,4 @@ if __name__=='__main__':
     csv_file = 'neighborhood_borough.csv' #csv file listing borough and neighborhoods
     table_name = "nhood_borough"          #name of the table to be added to database.
     #call main function
-    main(db_name, csv_name, table_name)
+    main(db_name, csv_file, table_name)
